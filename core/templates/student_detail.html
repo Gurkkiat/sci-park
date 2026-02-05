@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ student.full_name }} | Student Profile</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            --secondary-bg: #f8f9fc;
+            --card-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background-color: var(--secondary-bg);
+            color: #5a5c69;
+        }
+
+        .profile-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 4rem 0 6rem 0;
+            margin-bottom: 4rem;
+        }
+
+        .profile-card {
+            margin-top: -5rem;
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        .avatar-lg {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #eaecf4;
+            color: #4e73df;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 2.5rem;
+            border: 4px solid white;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        .section-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-transparent position-absolute w-100 z-1">
+        <div class="container mt-3">
+            <a href="{% url 'student_list' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="profile-header text-center">
+        <div class="container">
+            <!-- Initials Avatar -->
+            <div class="d-flex justify-content-center mb-3">
+                <div class="avatar-lg bg-white text-primary">
+                    {{ student.full_name|make_list|first|upper }}
+                </div>
+            </div>
+            <h1 class="display-6 fw-bold mb-1">{{ student.full_name }}</h1>
+            <p class="lead opacity-75 mb-0">{{ student.student_id }} | {{ student.major }}</p>
+        </div>
+    </header>
+
+    <div class="container pb-5">
+        <div class="row">
+            <!-- Left Column: Personal Info -->
+            <div class="col-lg-4">
+                <div class="card section-card">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-person-fill me-2"></i>ข้อมูลส่วนตัว
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-mortarboard text-muted me-2"></i>คณะ</span>
+                                <span class="fw-bold text-dark">{{ student.faculty }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-book text-muted me-2"></i>สาขาวิชา</span>
+                                <span class="fw-bold text-dark">{{ student.major }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-clock-history text-muted me-2"></i>ปีการศึกษา</span>
+                                <span class="fw-bold text-dark">{{ student.year_of_study|default:"-" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-envelope text-muted me-2"></i>อีเมล</span>
+                                <span class="text-primary small">{{ student.email }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-telephone text-muted me-2"></i>เบอร์โทร</span>
+                                <span class="text-dark">{{ student.tel|default:"-" }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Projects -->
+            <div class="col-lg-8">
+                <!-- Project History -->
+                <div class="card section-card">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-rocket-takeoff-fill me-2"></i>ประวัติโครงการ ({{ projects.count }})
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for project in projects %}
+                            <a href="{% url 'project_detail' project.project_id %}"
+                                class="list-group-item list-group-item-action p-4">
+                                <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                    <h5 class="mb-1 fw-bold text-dark">{{ project.project_name }}</h5>
+                                    <small class="text-muted"><i class="bi bi-chevron-right"></i></small>
+                                </div>
+                                <p class="mb-1 text-muted small text-truncate" style="max-width: 500px;">
+                                    {{ project.project_fullname }}
+                                </p>
+                                <span class="badge bg-light text-dark border mt-2">
+                                    <i class="bi bi-people-fill me-1"></i> ทีม: {{ project.project_name }} (Assumed)
+                                </span>
+                            </a>
+                            {% empty %}
+                            <div class="p-5 text-center text-muted">
+                                <i class="bi bi-folder-x display-4 d-block mb-3 opacity-50"></i>
+                                ยังไม่มีข้อมูลการเข้าร่วมโครงการ
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Awards -->
+                {% if awards %}
+                <div class="card section-card border-warning">
+                    <div class="card-header bg-warning text-dark py-3 border-bottom">
+                        <h6 class="m-0 font-weight-bold">
+                            <i class="bi bi-trophy-fill me-2"></i>รางวัลที่ได้รับ ({{ awards.count }})
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            {% for award in awards %}
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded border-start border-warning border-4">
+                                    <h6 class="fw-bold text-dark mb-1">{{ award.project_name }} ({{ award.around }})
+                                    </h6>
+                                    <div class="small text-muted">ปี: {{ award.year }} | ทีม: {{ award.team_name }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

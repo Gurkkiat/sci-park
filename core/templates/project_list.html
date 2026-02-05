@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sci-Park System | Project Search</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            --secondary-bg: #f8f9fc;
+            --card-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            --card-hover-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.25);
+        }
+
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background-color: var(--secondary-bg);
+            color: #5a5c69;
+        }
+
+        .hero-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 3rem 0 5rem 0;
+            /* Extra padding bottom for search overlap */
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .hero-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: skewX(-20deg) translateX(50px);
+        }
+
+        .search-card {
+            margin-top: -3rem;
+            /* Overlap header */
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.15);
+            z-index: 10;
+            position: relative;
+        }
+
+        .form-control-lg {
+            border-radius: 2rem;
+            padding-left: 1.5rem;
+            border: 1px solid #e3e6f0;
+            font-size: 1rem;
+        }
+
+        .form-control-lg:focus {
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+            border-color: #bac8f3;
+        }
+
+        .btn-search {
+            border-radius: 2rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            font-weight: 600;
+        }
+
+        .project-table-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+
+        .badge-soft {
+            background-color: #eaecf4;
+            color: #5a5c69;
+            font-weight: 600;
+        }
+
+        .btn-action {
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Hero Header -->
+    <header class="hero-header shadow-sm">
+        <div class="container position-relative z-1">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-rocket-takeoff-fill me-1"></i> Dashboard
+                </a>
+                <a href="{% url 'project_create' %}"
+                    class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-primary shadow-sm">
+                    <i class="bi bi-plus-circle-fill me-1"></i> สร้างโครงการใหม่
+                </a>
+            </div>
+            <h1 class="display-5 fw-bold mb-2">ระบบติดตามและค้นหาโครงการ</h1>
+            <p class="lead mb-0 opacity-75">ค้นหาข้อมูลโครงการ วิจัย และนวัตกรรมในระบบ Sci-Park</p>
+        </div>
+    </header>
+
+    <div class="container pb-5">
+
+        <!-- Search Section -->
+        <div class="card search-card mb-5">
+            <div class="card-body p-4">
+                <form method="get" class="row g-2 align-items-center">
+                    <div class="col-md">
+                        <div class="position-relative">
+                            <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 15px;"></i>
+                            <input type="text" name="q" class="form-control form-control-lg ps-5"
+                                placeholder="พิมพ์ชื่อโครงการ, ชื่อทีม หรือคีย์เวิร์ดที่ต้องการค้นหา..."
+                                value="{{ query|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" class="btn btn-primary btn-lg btn-search w-100">
+                            ค้นหาจัดเต็ม
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="card project-table-card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-list-ul me-2"></i> ผลการค้นหา
+                </h6>
+                <span class="badge bg-primary rounded-pill">{{ projects.count }} รายการ</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-secondary text-uppercase small">
+                        <tr>
+                            <th class="ps-4" style="width: 10%;">ID</th>
+                            <th style="width: 45%;">ชื่อโครงการ</th>
+                            <th style="width: 25%;">วันที่สร้าง</th>
+                            <th class="text-end pe-4" style="width: 20%;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge badge-soft text-dark">{{ project.project_id }}</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">{{ project.project_name }}</div>
+                                <small class="text-muted d-block text-truncate" style="max-width: 350px;">
+                                    {{ project.project_fullname|default:"-" }}
+                                </small>
+                            </td>
+                            <td class="text-muted small">
+                                <i class="bi bi-calendar3 me-1"></i> {{ project.date_time|date:"d M Y" }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'project_detail' project.project_id %}"
+                                    class="btn btn-sm btn-outline-primary btn-action px-3">
+                                    <i class="bi bi-eye-fill me-1"></i> ดูรายละเอียด
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <div class="mb-3">
+                                    <i class="bi bi-search display-4 opacity-25"></i>
+                                </div>
+                                <h5>ไม่พบข้อมูลที่ค้นหา</h5>
+                                <p class="small mb-0">ลองใช้คำค้นหาอื่น หรือตรวจสอบตัวสะกด</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted small hover-primary">
+                &larr; กลับหน้า Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

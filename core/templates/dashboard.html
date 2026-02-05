@@ -1,0 +1,443 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sci-Park System | System Overview</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4e73df 10%, #224abe 100%);
+            --success-gradient: linear-gradient(135deg, #1cc88a 10%, #13855c 100%);
+            --warning-gradient: linear-gradient(135deg, #f6c23e 10%, #dda20a 100%);
+            --secondary-bg: #f8f9fc;
+            --card-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            --card-hover-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.25);
+        }
+
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background-color: var(--secondary-bg);
+            color: #5a5c69;
+        }
+
+        .navbar {
+            background: white !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            color: #4e73df !important;
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Vibrant Card Styles */
+        .stat-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+            height: 100%;
+            position: relative;
+            color: white;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .bg-gradient-primary {
+            background: var(--primary-gradient);
+        }
+
+        .bg-gradient-success {
+            background: var(--success-gradient);
+        }
+
+        .bg-gradient-warning {
+            background: var(--warning-gradient);
+        }
+
+        .stat-card .card-body {
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-icon {
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            font-size: 6rem;
+            opacity: 0.2;
+            transform: rotate(15deg);
+            z-index: 1;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: rotate(0deg) scale(1.1);
+        }
+
+        .card-link {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.1);
+            text-align: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.2s;
+            z-index: 3;
+        }
+
+        .card-link:hover {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+
+        .text-white-75 {
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .text-gray-800 {
+            color: #5a5c69 !important;
+        }
+
+        /* Button Styling */
+        .btn-modern-outline {
+            border: 2px solid #4e73df;
+            color: #4e73df;
+            border-radius: 2rem;
+            font-weight: 700;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .btn-modern-outline:hover {
+            background: #4e73df;
+            color: white;
+        }
+
+        .recent-booking-card {
+            border-left: 4px solid #4e73df;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: 0.2s;
+        }
+
+        .recent-booking-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar (White style for contrast) -->
+    <nav class="navbar navbar-expand-lg mb-5 sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard' %}">
+                <img src="{% static 'image/image.png' %}" alt="Sci-Park Logo" height="50">
+                <span>Sci-Park System</span>
+            </a>
+
+            <div class="ms-auto">
+                <a href="{% url 'project_list' %}" class="btn btn-modern-outline shadow-sm">
+                    <i class="bi bi-search me-1"></i> ค้นหาโครงการ
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        {% if messages %}
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="h3 mb-0 text-gray-800 fw-bold">System Overview</h2>
+            <span class="text-muted small bg-white px-3 py-2 rounded-pill shadow-sm">
+                <i class="bi bi-calendar-check me-2 text-primary"></i> ข้อมูลล่าสุด: วันนี้
+            </span>
+        </div>
+
+        <div class="row mb-5">
+            <!-- Student Card -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="stat-card bg-gradient-primary">
+                    <div class="card-body p-4 pb-5"> <!-- Added pb-5 -->
+                        <div class="row align-items-center mb-4">
+                            <div class="col">
+                                <div class="text-uppercase text-white-75 fw-bold font-monospace small mb-1">
+                                    ผู้เข้าร่วมโครงการ</div>
+                                <div class="h1 mb-0 fw-bold text-white">{{ total_students }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-people-fill stat-icon text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'student_list' %}" class="card-link">
+                        ดูรายชื่อทั้งหมด <i class="bi bi-arrow-right-circle-fill ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Project Card -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="stat-card bg-gradient-success">
+                    <div class="card-body p-4 pb-5"> <!-- Extra padding for bottom link -->
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-uppercase text-white-75 fw-bold font-monospace small mb-1">
+                                    โครงการทั้งหมด</div>
+                                <div class="h1 mb-0 fw-bold text-white">{{ total_projects }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-folder-fill stat-icon text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'project_list' %}" class="card-link">
+                        ดูรายการทั้งหมด <i class="bi bi-arrow-right-circle-fill ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Facility Card -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="stat-card bg-gradient-warning">
+                    <div class="card-body p-4 pb-5">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-uppercase text-white-75 fw-bold font-monospace small mb-1">
+                                    ห้อง/อุปกรณ์บริการ</div>
+                                <div class="h1 mb-0 fw-bold text-white">{{ total_facilities }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-building-fill stat-icon text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'booking_create' %}" class="card-link">
+                        จองห้อง/อุปกรณ์ <i class="bi bi-arrow-right-circle-fill ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Participation Chart Section -->
+        <div class="card border-0 shadow-sm mb-5">
+            <div
+                class="card-header bg-white py-3 border-bottom border-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold text-gray-800">
+                    <i class="bi bi-bar-chart-fill text-primary me-2"></i> สถิตินักศึกษาที่เข้าร่วมโครงการ (Student
+                    Participation)
+                </h5>
+                <!-- Filter Form -->
+                <form method="get" class="d-flex align-items-center">
+                    <label for="yearFilter" class="me-2 text-muted small fw-bold">เลือกปี:</label>
+                    <select name="year" id="yearFilter" class="form-select form-select-sm" style="width: auto;"
+                        onchange="this.form.submit()">
+                        {% for year in available_years %}
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+            <div class="card-body">
+                <canvas id="studentChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Activity Section (Optional but good for layout) -->
+        <h5 class="fw-bold text-gray-800 mb-3 border-start border-4 border-primary ps-3">การจองล่าสุด (Recent Bookings)
+        </h5>
+        <div class="row">
+            {% if recent_bookings %}
+            {% for booking in recent_bookings %}
+            <div class="col-md-6 mb-3">
+                <div style="cursor: pointer;" data-bs-toggle="modal"
+                    data-bs-target="#bookingModal{{ booking.booking_id }}"
+                    class="recent-booking-card p-3 d-flex justify-content-between align-items-center {% if booking.is_active %}border-success border-3 bg-light shadow-sm{% endif %}">
+                    <div>
+                        <h6 class="fw-bold mb-1">
+                            {% if booking.is_active %}<span class="text-success me-1">●</span>{% endif %}
+                            <span class="badge bg-light text-dark border me-1 small" style="font-weight: 500;">{{ booking.facility_id }}</span>
+                            {{ booking.topic|default:"No Topic" }}
+                        </h6>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-event me-1"></i> {{ booking.booking_date }}
+                            <i class="bi bi-clock ms-2 me-1"></i> {{ booking.start_time|time:"H:i" }} - {{booking.end_time|time:"H:i" }}
+                        </small>
+                    </div>
+                    <span
+                        class="badge text-uppercase {% if booking.display_status == 'Completed' %}bg-secondary text-white border-0{% elif booking.display_status == 'In Progress' %}bg-success text-white border-0{% elif booking.display_status == 'Cancelled' %}bg-danger text-white border-0{% else %}bg-light text-primary border border-primary{% endif %}">
+                        {{ booking.display_status }}
+                    </span>
+                </div>
+
+                <!-- Booking Detail Modal -->
+                <div class="modal fade" id="bookingModal{{ booking.booking_id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold">
+                                    <i class="bi bi-info-circle text-primary me-2"></i>รายละเอียดการจอง
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="small text-muted fw-bold">หัวข้อ</label>
+                                    <div class="fs-5 fw-bold text-dark">{{ booking.topic|default:"-" }}</div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label class="small text-muted fw-bold">สถานที่</label>
+                                        <div><i class="bi bi-geo-alt me-1"></i> {{ booking.facility.facility_name }} ({{ booking.facility_id }})</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-muted fw-bold">วัน-เวลา</label>
+                                        <div>
+                                            <i class="bi bi-calendar3 me-1"></i> {{ booking.booking_date|date:"d M Y" }}<br>
+                                            <i class="bi bi-clock me-1"></i> {{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-light rounded-3">
+                                    <label class="small text-muted fw-bold mb-2">ข้อมูลผู้จอง</label>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-person-circle fs-4 me-2 text-secondary"></i>
+                                        <div>
+                                            <div class="fw-bold">{{ booking.booked_by_user.full_name }}</div>
+                                            <div class="small text-muted">{{ booking.booked_by_user.user_id }}</div>
+                                        </div>
+                                    </div>
+                                    {% if booking.phone_number %}
+                                    <div class="d-flex align-items-center text-dark">
+                                        <i class="bi bi-telephone-fill me-2 text-success"></i>
+                                        <span class="fw-bold">{{ booking.phone_number }}</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="text-muted small fst-italic"><i
+                                            class="bi bi-telephone me-2"></i>ไม่ระบุเบอร์โทร</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary rounded-pill"
+                                    data-bs-dismiss="modal">ปิด</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="col-12 text-muted fst-italic">
+                - ยังไม่มีข้อมูลการจองล่าสุด -
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    {{ chart_labels|json_script:"chart-labels-data" }}
+    {{ chart_data|json_script:"chart-values-data" }}
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('studentChart').getContext('2d');
+
+            // Data from Django
+            // ดึงข้อมูลจาก Script ID ที่เราสร้างไว้ข้างบน แล้วแปลงกลับเป็น JSON
+            const labels = JSON.parse(document.getElementById('chart-labels-data').textContent);
+            const data = JSON.parse(document.getElementById('chart-values-data').textContent);
+
+            new Chart(ctx, {
+                type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'จำนวนนักศึกษา (คน)',
+                    data: data,
+                    backgroundColor: 'rgba(78, 115, 223, 0.7)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return context.parsed.y + ' คน';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        grid: {
+                            borderDash: [2, 4],
+                            color: '#eaecf4'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        });
+    </script>
+</body>
+
+</html>

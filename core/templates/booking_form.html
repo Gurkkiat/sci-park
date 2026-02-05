@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sci-Park System | Booking</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            --secondary-bg: #f8f9fc;
+            --card-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background-color: var(--secondary-bg);
+            color: #5a5c69;
+        }
+
+        .booking-header {
+            background: var(--primary-gradient);
+            padding: 3rem 0 5rem 0;
+            color: white;
+            margin-bottom: -3rem;
+        }
+
+        .booking-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #4e73df;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d3e2;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            border-color: #bac8f3;
+        }
+
+        .btn-submit {
+            background: var(--primary-gradient);
+            border: none;
+            padding: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="booking-header">
+        <div class="container">
+            <h1 class="h2 fw-bold mb-2 text-center">
+                <i class="bi bi-calendar-plus-fill me-2"></i> จองห้องและอุปกรณ์
+            </h1>
+            <p class="text-center text-white-50 mb-0">กรอกข้อมูลเพื่อทำการจองใช้บริการพื้นที่หรืออุปกรณ์</p>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+
+        <!-- Alerts -->
+        {% if messages %}
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-12">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+            <!-- Left Column: Booking Form -->
+            <div class="col-lg-7">
+                <div class="card booking-card h-100">
+                    <div class="card-body p-4 p-md-5">
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <h5 class="fw-bold text-dark border-bottom pb-3 mb-4">
+                                <i class="bi bi-pencil-square text-primary me-2"></i> ข้อมูลการจอง
+                            </h5>
+
+                            <div class="mb-3">
+                                <label class="form-label">หัวข้อการจอง</label>
+                                {{ form.topic }}
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Zone (โซน)</label>
+                                    <select id="zoneSelect" class="form-select">
+                                        <option value="">ทุกโซน (All Zones)</option>
+                                        <option value="A">Zone A</option>
+                                        <option value="B">Zone B</option>
+                                        <option value="C">Zone C</option>
+                                        <option value="D">Zone D</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Floor (ชั้น)</label>
+                                    <select id="floorSelect" class="form-select">
+                                        <option value="">ทุกชั้น (All Floors)</option>
+                                        <option value="1">ชั้น 1</option>
+                                        <option value="2">ชั้น 2</option>
+                                        <option value="3">ชั้น 3</option>
+                                        <option value="4">ชั้น 4</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">เลือกห้อง/อุปกรณ์</label>
+                                {{ form.facility }}
+                                <div id="roomCountHelp" class="form-text text-muted small mt-1">แสดงห้องทั้งหมด</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">ผู้จอง (Booked By)</label>
+                                {{ form.booked_by_user }}
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">เบอร์โทรศัพท์ติดต่อ (Contact Number)</label>
+                                {{ form.phone_number }}
+                            </div>
+
+                            <hr class="my-4 text-muted opacity-25">
+
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="bi bi-clock text-warning me-2"></i> วันและเวลา
+                            </h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">วันที่</label>
+                                    {{ form.booking_date }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">เริ่มเวลา</label>
+                                    {{ form.start_time }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">สิ้นสุดเวลา</label>
+                                    {{ form.end_time }}
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-5">
+                                <button type="submit"
+                                    class="btn btn-primary btn-submit text-white rounded-pill shadow-sm">
+                                    <i class="bi bi-check-circle-fill me-2"></i> ยืนยันการจอง
+                                </button>
+                                <a href="{% url 'dashboard' %}" class="btn btn-light text-muted rounded-pill mt-2">
+                                    ยกเลิก
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Schedule -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm h-100" style="background: white; border-radius: 1rem;">
+                    <div class="card-header bg-white py-3 border-bottom border-light">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-calendar-event text-success me-2"></i> ตารางการจองเร็วๆ นี้
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for booking in upcoming_bookings %}
+                            <div
+                                class="list-group-item p-3 {% if booking.is_active %}border-start border-5 border-success bg-light{% else %}border-light{% endif %} position-relative">
+                                {% if booking.is_active %}
+                                <span class="position-absolute top-0 end-0 badge bg-success m-2">กำลังใช้งาน now</span>
+                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge bg-light text-dark border">{{ booking.booking_date|date:"d M Y"}}</span>
+                                    <small class="text-muted fw-bold">{{ booking.start_time|time:"H:i" }} - {{booking.end_time|time:"H:i" }}</small>
+                                </div>
+                                <div class="fw-bold text-primary mb-1">{{ booking.topic }}</div>
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <span class="text-muted"><i class="bi bi-geo-alt me-1"></i>
+                                        {{booking.facility.facility_name }}</span>
+                                    <span class="text-secondary"><i class="bi bi-person me-1"></i>
+                                        {{booking.booked_by_user.full_name }}</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-calendar-x fs-1 opacity-25 d-block mb-2"></i>
+                                ไม่มีรายการจองเร็วๆ นี้
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking History Section -->
+            <div class="card border-0 shadow-sm mt-4" style="background: white; border-radius: 1rem;">
+                <div class="card-header bg-white py-3 border-bottom border-light">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-clock-history text-muted me-2"></i> ประวัติการจอง (History)
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        {% for booking in booking_history %}
+                        <div class="list-group-item p-3 border-light bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span
+                                    class="badge bg-secondary text-white border text-opacity-75">{{booking.booking_date|date:"d M Y" }}</span>
+                                <small class="text-muted">{{ booking.start_time|time:"H:i" }} - {{booking.end_time|time:"H:i" }}</small>
+                            </div>
+                            <div class="fw-bold text-muted mb-1">{{ booking.topic }}</div>
+                            <div class="d-flex justify-content-between align-items-center small text-muted opacity-75">
+                                <span><i class="bi bi-geo-alt me-1"></i> {{ booking.facility.facility_name }}</span>
+                                <span><i class="bi bi-person me-1"></i> {{ booking.booked_by_user.full_name }}</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-muted small">
+                            <i class="bi bi-archive opacity-25 d-block mb-1"></i>
+                            ไม่มีประวัติการจอง
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    {{ facilities_json|json_script:"facilities-data" }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Data from View
+            const facilities = JSON.parse(document.getElementById('facilities-data').textContent);
+
+            // Elements
+            const zoneSelect = document.getElementById('zoneSelect');
+            const floorSelect = document.getElementById('floorSelect');
+            const facilitySelect = document.getElementById('id_facility');
+            const roomCountHelp = document.getElementById('roomCountHelp');
+
+            // Initial Filter
+            filterFacilities();
+
+            // Event Listeners
+            zoneSelect.addEventListener('change', filterFacilities);
+            floorSelect.addEventListener('change', filterFacilities);
+
+            function filterFacilities() {
+                const selectedZone = zoneSelect.value;
+                const selectedFloor = floorSelect.value;
+
+                let visibleCount = 0;
+
+                // Loop through all options in the Facility Select
+                // Skip the first option if it's "---------" (Django default placeholder)
+                for (let i = 0; i < facilitySelect.options.length; i++) {
+                    const option = facilitySelect.options[i];
+                    if (!option.value) continue; // Skip placeholder
+
+                    // Check if this option should be visible
+                    // We need to find the corresponding facility data
+                    // Since option.value is the ID, we look it up in our JSON
+                    const facData = facilities.find(f => f.facility_id === option.value);
+
+                    let show = true;
+
+                    if (facData) {
+                        // Check Zone (Normalize to string and trim)
+                        if (selectedZone && String(facData.zone || '').trim() !== selectedZone) {
+                            show = false;
+                        }
+                        // Check Floor (Normalize to string)
+                        if (selectedFloor && String(facData.floor || '').trim() !== selectedFloor) {
+                            show = false;
+                        }
+                    } else {
+                        // If data not found (rare), maybe show it or hide it? keep it showing just in case
+                        // Or hide it? Safer to hide if we are strict.
+                    }
+
+                    // Toggle Visibility
+                    if (show) {
+                        option.style.display = ''; // Reset display
+                        option.disabled = false;   // Enable
+                        visibleCount++;
+                    } else {
+                        option.style.display = 'none'; // Hide
+                        option.disabled = true;        // Disable (so can't be selected by keyboard)
+                    }
+                }
+
+                // Select the first visible option if current selection is hidden
+                const currentOption = facilitySelect.options[facilitySelect.selectedIndex];
+                if (currentOption && currentOption.style.display === 'none') {
+                    // Find first visible
+                    for (let i = 0; i < facilitySelect.options.length; i++) {
+                        if (facilitySelect.options[i].style.display !== 'none' && facilitySelect.options[i].value) {
+                            facilitySelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                roomCountHelp.textContent = `พบ ${visibleCount} ห้อง`;
+            }
+        });
+    </script>
+</body>
+
+</html>
