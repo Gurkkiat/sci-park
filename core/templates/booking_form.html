@@ -104,6 +104,17 @@
                         <form method="post">
                             {% csrf_token %}
 
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                {% for error in form.non_field_errors %}
+                                {{ error }}<br>
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+                            {% endif %}
+
                             <h5 class="fw-bold text-dark border-bottom pb-3 mb-4">
                                 <i class="bi bi-pencil-square text-primary me-2"></i> ข้อมูลการจอง
                             </h5>
@@ -142,9 +153,31 @@
                                 <div id="roomCountHelp" class="form-text text-muted small mt-1">แสดงห้องทั้งหมด</div>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="form-label">ผู้จอง (Booked By)</label>
-                                {{ form.booked_by_user }}
+                            <div class="mb-4 p-3 bg-light rounded border">
+                                <label class="form-label fw-bold">ผู้ทำการจอง (Booked By)</label>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-3">
+                                        <i class="bi bi-person-circle fs-4 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ user.full_name|default:user.username }}</div>
+                                        <div class="small text-muted">บัญชีผู้ใช้งานปัจจุบัน</div>
+                                    </div>
+                                </div>
+
+                                <div class="form-check form-switch mb-3">
+                                    {{ form.is_for_others }}
+                                    <label class="form-check-label"
+                                        for="{{ form.is_for_others.id_for_label }}">จองให้ผู้อื่น (Book for
+                                        others)</label>
+                                </div>
+
+                                <div id="registrant-name-container" style="display: none;">
+                                    <label class="form-label">ชื่อผู้จอง (Registrant Name)</label>
+                                    {{ form.registrant_name }}
+                                    <div class="form-text text-muted small">ระบุชื่อ-นามสกุล ของผู้ที่จะเข้าใช้งานจริง
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mb-4">
@@ -164,12 +197,26 @@
                                     {{ form.booking_date }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">เริ่มเวลา</label>
+                                    <label class="form-label">เริ่มเวลา (Start Time)</label>
                                     {{ form.start_time }}
+                                    {% if form.start_time.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.start_time.errors %}
+                                        <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">สิ้นสุดเวลา</label>
+                                    <label class="form-label">สิ้นสุดเวลา (End Time)</label>
                                     {{ form.end_time }}
+                                    {% if form.end_time.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.end_time.errors %}
+                                        <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -263,6 +310,23 @@
     {{ facilities_json|json_script:"facilities-data" }}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Toggle Registrant Name
+            const isForOthersCheckbox = document.getElementById('{{ form.is_for_others.id_for_label }}');
+            const registrantContainer = document.getElementById('registrant-name-container');
+
+            function toggleRegistrant() {
+                if (isForOthersCheckbox.checked) {
+                    registrantContainer.style.display = 'block';
+                } else {
+                    registrantContainer.style.display = 'none';
+                }
+            }
+
+            if (isForOthersCheckbox) {
+                isForOthersCheckbox.addEventListener('change', toggleRegistrant);
+                toggleRegistrant(); // Initial check
+            }
+
             // Data from View
             const facilities = JSON.parse(document.getElementById('facilities-data').textContent);
 

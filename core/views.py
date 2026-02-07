@@ -202,6 +202,32 @@ def booking_create(request):
             import datetime
             booking = form.save(commit=False)
             booking.booking_id = f"BK-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            
+            # --- New Logic: Handle User & Registrant ---
+            # 1. Assign Booked By (Logged-in User)
+            # Find Login instance matching current user
+            from .models import Login
+            try:
+                # Assuming username matches user_id or similar field in Login model
+                # Adjust query if Login model structure is different (e.g. user_id=request.user.username)
+                booked_by = Login.objects.filter(user_id=request.user.username).first()
+                booking.booked_by_user = booked_by
+            except Exception as e:
+                print(f"Error finding Login user: {e}")
+            
+            # 2. Handle Registrant Name
+            is_for_others = form.cleaned_data.get('is_for_others')
+            registrant_name = form.cleaned_data.get('registrant_name')
+            
+            if is_for_others and registrant_name:
+                booking.registrant_name = registrant_name
+            else:
+                # If booking for self, use user's full name if available, else username
+                if booked_by and booked_by.full_name:
+                    booking.registrant_name = booked_by.full_name
+                else:
+                    booking.registrant_name = request.user.username
+
             booking.save()
             
             messages.success(request, 'บันทึกการจองสำเร็จ! (Booking successfully created)')

@@ -7,18 +7,57 @@ class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
         # เลือกฟิลด์ที่จะให้ User กรอก
-        fields = ['topic', 'booked_by_user', 'facility', 'booking_date', 'start_time', 'end_time', 'phone_number']
+    is_for_others = forms.BooleanField(required=False, label="จองให้ผู้อื่น", widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    registrant_name = forms.CharField(required=False, label="ชื่อผู้จอง (กรณีจองให้ผู้อื่น)", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ระบุชื่อผู้ใช้งานจริง'}))
+
+    class Meta:
+        model = Booking
+        # เลือกฟิลด์ที่จะให้ User กรอก (ตัด booked_by_user ออก เพราะจะ auto-fill)
+        fields = ['topic', 'facility', 'booking_date', 'start_time', 'end_time', 'phone_number', 'is_for_others', 'registrant_name']
         
         # ปรับแต่งหน้าตา Input ให้สวยด้วย Bootstrap
         widgets = {
             'booking_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-            'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            # step="1800" = 30 minutes
+            'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control', 'step': '1800'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control', 'step': '1800'}),
             'topic': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เช่น ประชุมทีมโปรเจกต์ A'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เบอร์โทรศัพท์ติดต่อ'}),
             'facility': forms.Select(attrs={'class': 'form-select'}),
-            'booked_by_user': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+
+        if start_time and end_time:
+            # 1. Start < End check (Basic)
+            if start_time >= end_time:
+                raise forms.ValidationError("เวลาเริ่มต้นต้องมาก่อนเวลาสิ้นสุด")
+
+            # Calculate duration in minutes
+            # Convert to datetime for calculation (using dummy date)
+            from datetime import datetime, date, timedelta
+            dummy_date = date.today()
+            start_dt = datetime.combine(dummy_date, start_time)
+            end_dt = datetime.combine(dummy_date, end_time)
+            duration = end_dt - start_dt
+            duration_minutes = duration.total_seconds() / 60
+            
+            # 2. Check 30-minute intervals
+            if start_time.minute % 30 != 0:
+                 self.add_error('start_time', "กรุณาเลือกเวลาลงท้ายด้วย 00 หรือ 30 นาทีเท่านั้น")
+            if end_time.minute % 30 != 0:
+                 self.add_error('end_time', "กรุณาเลือกเวลาลงท้ายด้วย 00 หรือ 30 นาทีเท่านั้น")
+
+            # 3. Check Duration (1 hour <= duration <= 4 hours)
+            if duration_minutes < 60:
+                raise forms.ValidationError("ระยะเวลาการจองต้องไม่ต่ำกว่า 1 ชั่วโมง")
+            if duration_minutes > 240: # 4 * 60
+                raise forms.ValidationError("ระยะเวลาการจองสูงสุดไม่เกิน 4 ชั่วโมง")
+        
+        return cleaned_data
 
 from .models import Project, Student, Team
 

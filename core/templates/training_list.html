@@ -2,7 +2,16 @@
 {% load static %}
 
 {% block content %}
-<div class="container py-5">
+<div class="pb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"
+                    class="text-decoration-none text-muted">หน้าหลัก</a></li>
+            <li class="breadcrumb-item active" aria-current="page">รายการฝึกอบรม</li>
+        </ol>
+    </nav>
+
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>

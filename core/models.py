@@ -212,6 +212,7 @@ class Booking(models.Model):
     booking_id = models.CharField(db_column='BookingID', primary_key=True, max_length=50)
     facility = models.ForeignKey(Facility, models.DO_NOTHING, db_column='FacilityID', blank=True, null=True)
     booked_by_user = models.ForeignKey(Login, models.DO_NOTHING, db_column='BookedBy_UserID', blank=True, null=True)
+    registrant_name = models.CharField(db_column='RegistrantName', max_length=255, blank=True, null=True)
     booking_date = models.DateField(db_column='BookingDate', blank=True, null=True)
     start_time = models.TimeField(db_column='StartTime', blank=True, null=True)
     end_time = models.TimeField(db_column='EndTime', blank=True, null=True)
@@ -225,7 +226,7 @@ class Booking(models.Model):
         current_date = now.date()
         current_time = now.time()
         
-        if self.booking_date == current_date:
+        if self.booking_date == current_date and self.start_time and self.end_time:
             if self.start_time <= current_time <= self.end_time:
                 return True
         return False
@@ -241,9 +242,9 @@ class Booking(models.Model):
         current_time = now.time()
         
         # Check if Completed (Past)
-        if self.booking_date < current_date:
+        if self.booking_date and self.booking_date < current_date:
             return 'Completed'
-        if self.booking_date == current_date and self.end_time < current_time:
+        if self.booking_date and self.booking_date == current_date and self.end_time and self.end_time < current_time:
             return 'Completed'
             
         # Check if In Progress (Reuse is_active)

@@ -53,11 +53,15 @@
     <!-- Hero Header -->
     <header class="hero-header shadow-sm">
         <div class="container position-relative z-1">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <a href="{% url 'project_list' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
-                    <i class="bi bi-arrow-left me-1"></i> ย้อนกลับ
-                </a>
-            </div>
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small text-white-50">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"
+                            class="text-decoration-none text-white-50">หน้าหลัก</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'project_list' %}"
+                            class="text-decoration-none text-white-50">รายชื่อโครงการ</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">สร้างโครงการ</li>
+                </ol>
+            </nav>
             <h1 class="display-5 fw-bold mb-2">สร้างโครงการใหม่</h1>
             <p class="lead mb-0 opacity-75">เพิ่มโครงการและทีมงานเข้าสู่ระบบ Sci-Park</p>
         </div>

@@ -31,18 +31,7 @@
             color: #5a5c69;
         }
 
-        .navbar {
-            background: white !important;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            padding: 1rem 0;
-        }
-
-        .navbar-brand {
-            color: #4e73df !important;
-            font-weight: 800;
-            font-size: 1.5rem;
-            letter-spacing: 0.5px;
-        }
+        /* Removed conflicting navbar styles to use utilities */
 
         /* Vibrant Card Styles */
         .stat-card {
@@ -152,37 +141,87 @@
 
 <body>
 
-    <!-- Navbar (White style for contrast) -->
-    <nav class="navbar navbar-expand-lg mb-5 sticky-top">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top mb-5 py-3"
+        style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05);">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard' %}">
-                <img src="{% static 'image/image.png' %}" alt="Sci-Park Logo" height="50">
-                <span>Sci-Park System</span>
+                <img src="{% static 'image/image.png' %}" alt="Sci-Park Logo" height="40">
+                <span class="fw-bold text-primary" style="letter-spacing: -0.5px;">Sci-Park System</span>
             </a>
 
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <a href="{% url 'project_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill">
-                    <i class="bi bi-search me-1"></i> ค้นหาโครงการ
-                </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                {% if user.is_authenticated %}
-                <div class="d-flex align-items-center">
-                    <div class="d-flex flex-column align-items-end me-2">
-                        <span class="small fw-bold text-muted">Welcome, {{ user.username }}</span>
-                        {% if user.is_superuser or user.is_staff %}
-                        <span class="badge bg-danger rounded-pill" style="font-size: 0.6rem;">ADMIN</span>
-                        {% else %}
-                        <span class="badge bg-secondary rounded-pill" style="font-size: 0.6rem;">USER</span>
-                        {% endif %}
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <!-- Main Navigation -->
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 bg-light rounded-pill p-1 shadow-sm d-inline-flex">
+                    <li class="nav-item">
+                        <a class="nav-link px-3 rounded-pill active bg-white shadow-sm text-primary fw-bold"
+                            href="{% url 'dashboard' %}">
+                            <i class="bi bi-grid-fill me-1"></i> ภาพรวม
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 rounded-pill text-muted" href="{% url 'project_list' %}">
+                            <i class="bi bi-rocket-takeoff-fill me-1"></i> โครงการ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 rounded-pill text-muted" href="{% url 'training_list' %}">
+                            <i class="bi bi-journal-check me-1"></i> ฝึกอบรม
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 rounded-pill text-muted" href="{% url 'student_list' %}">
+                            <i class="bi bi-people-fill me-1"></i> ผู้เข้าร่วม
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- User Menu -->
+                <div class="d-flex align-items-center gap-3">
+                    {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle"
+                            data-bs-toggle="dropdown">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 shadow-sm"
+                                style="width: 38px; height: 38px;">
+                                {{ user.username|make_list|first|upper }}
+                            </div>
+                            <div class="d-none d-lg-block text-end me-1">
+                                <div class="fw-bold small lh-1">{{ user.username }}</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">
+                                    {% if user.is_superuser %}Administrator{% else %}Member{% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2 mt-2"
+                            style="min-width: 200px;">
+                            <li>
+                                <h6 class="dropdown-header text-uppercase small fw-bold text-muted">Account</h6>
+                            </li>
+                            <li><a class="dropdown-item rounded-3 mb-1" href="#"><i class="bi bi-person me-2"></i>
+                                    โปรไฟล์</a></li>
+                            <li><a class="dropdown-item rounded-3 mb-1" href="#"><i class="bi bi-gear me-2"></i>
+                                    ตั้งค่า</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item rounded-3 text-danger fw-bold">
+                                        <i class="bi bi-box-arrow-right me-2"></i> ออกจากระบบ
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </div>
-                    <form action="{% url 'logout' %}" method="post" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-danger rounded-pill shadow-sm py-1 px-3">
-                            <i class="bi bi-box-arrow-right me-1"></i> Logout
-                        </button>
-                    </form>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </nav>

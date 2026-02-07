@@ -143,10 +143,12 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-2">
-                            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">หน้าหลัก</a></li>
-                            <li class="breadcrumb-item"><a href="{% url 'project_list' %}">รายชื่อโครงการ</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">รายละเอียด</li>
+                        <ol class="breadcrumb mb-2 small">
+                            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"
+                                    class="text-white-50 text-decoration-none">หน้าหลัก</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'project_list' %}"
+                                    class="text-white-50 text-decoration-none">รายชื่อโครงการ</a></li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">{{ project.project_name|truncatechars:20 }}</li>
                         </ol>
                     </nav>
                     <h1 class="display-5 fw-bold mb-1">{{ project.project_name }}</h1>
