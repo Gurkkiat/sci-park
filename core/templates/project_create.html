@@ -72,6 +72,7 @@
                         <form method="post">
                             {% csrf_token %}
 
+                            <h5 class="fw-bold text-primary mb-3">1. ข้อมูลโครงการ</h5>
                             <div class="mb-4">
                                 <label class="form-label">ชื่อโครงการ (Project Name)</label>
                                 {{ form.project_name }}
@@ -83,9 +84,33 @@
                                 {{ form.project_fullname }}
                             </div>
 
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">ปีงบประมาณ</label>
+                                    {{ form.budget_year }}
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">วัตถุประสงค์ (Objective)</label>
+                                {{ form.objective }}
+                            </div>
+
                             <div class="mb-4">
                                 <label class="form-label">รายละเอียด (Detail)</label>
                                 {{ form.project_detail }}
+                            </div>
+
+                            <h5 class="fw-bold text-primary mb-3 mt-5">2. ข้อมูลทีม (Team Info)</h5>
+                            <div class="job-card bg-light p-4 rounded-3 mb-4">
+                                <div class="mb-4">
+                                    <label class="form-label">แนวคิดหลักของโครงงาน (Concept)</label>
+                                    {{ team_form.concept }}
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label">ความต้องการสนับสนุน (Development Needs)</label>
+                                    {{ team_form.development_needs }}
+                                </div>
                             </div>
 
                             <hr class="my-4">

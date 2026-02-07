@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-6 fw-bold text-dark">รายการฝึกอบรม (Trainings)</h1>
+            <p class="text-muted mb-0">หลักสูตรและการพัฒนาศักยภาพผู้ประกอบการ</p>
+        </div>
+        {% if user.is_staff %}
+        <a href="{% url 'training_create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-2"></i>สร้างการอบรม
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Training Cards -->
+    <div class="row g-4">
+        {% for training in trainings %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm hover-up transition-all rounded-4">
+                <div class="card-body p-4">
+                    <!-- Status/ID Badge -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="badge bg-light text-secondary border rounded-pill">{{ training.training_id }}</span>
+                        {% if training.training_end_date %}
+                        <span class="badge bg-success-subtle text-success rounded-pill">Completed</span>
+                        {% else %}
+                        <span class="badge bg-primary-subtle text-primary rounded-pill">Upcoming</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Title -->
+                    <h5 class="card-title fw-bold text-dark mb-3 lh-base">{{ training.training_name }}</h5>
+
+                    <!-- Details -->
+                    <div class="vstack gap-2 text-muted small mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar-event me-2 text-primary"></i>
+                            <span>{{ training.training_date|date:"d M Y" }}
+                                {% if training.training_end_date %} - {{ training.training_end_date|date:"d M Y" }}{% endif %}
+                            </span>
+                        </div>
+                        {% if training.lecturer_name %}
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-person-video3 me-2 text-info"></i>
+                            <span>{{ training.lecturer_name }}</span>
+                        </div>
+                        {% endif %}
+                        {% if training.project %}
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-briefcase me-2 text-warning"></i>
+                            <span class="text-truncate">{{ training.project.project_name }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action -->
+                    <a href="{% url 'training_detail' training.training_id %}"
+                        class="btn btn-outline-primary w-100 rounded-pill fw-bold">
+                        ดูรายละเอียด
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="bg-light rounded-4 p-5 d-inline-block">
+                <i class="bi bi-journal-x fs-1 text-muted mb-3 d-block"></i>
+                <h5 class="text-muted">ยังไม่มีรายการฝึกอบรม</h5>
+                {% if user.is_staff %}
+                <a href="{% url 'training_create' %}"
+                    class="btn btn-link text-decoration-none fw-bold mt-2">เริ่มสร้างเลย</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .hover-up:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}

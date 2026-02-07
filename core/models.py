@@ -82,16 +82,23 @@ class Project(models.Model):
     project_name = models.CharField(db_column='ProjectName', max_length=255, blank=True, null=True)
     project_fullname = models.TextField(db_column='ProjectFullname', blank=True, null=True)
     project_detail = models.TextField(db_column='ProjectDetail', blank=True, null=True)
+    objective = models.TextField(db_column='Objective', blank=True, null=True) # New
+    budget_year = models.CharField(db_column='BudgetYear', max_length=20, blank=True, null=True) # New
     date_time = models.DateTimeField(db_column='Date_Time', blank=True, null=True)
     create_by = models.CharField(db_column='Create_By', max_length=100, blank=True, null=True)
 
     class Meta:
         db_table = 'Projects'
 
+    def __str__(self):
+        return f"{self.project_name} ({self.project_id})"
+
 class Team(models.Model):
     team_id = models.CharField(db_column='TeamID', primary_key=True, max_length=50)
     team_name = models.CharField(db_column='TeamName', max_length=255, blank=True, null=True)
     project_name = models.CharField(db_column='ProjectName', max_length=50, blank=True, null=True)
+    concept = models.TextField(db_column='Concept', blank=True, null=True) # New
+    development_needs = models.TextField(db_column='DevelopmentNeeds', blank=True, null=True) # New
     date_time = models.DateTimeField(db_column='Date_Time', blank=True, null=True)
 
     class Meta:
@@ -115,6 +122,16 @@ class Entrepreneur(models.Model):
     class Meta:
         db_table = 'Entrepreneur'
 
+class EntrepreneurIncome(models.Model):
+    ei_id = models.AutoField(primary_key=True)
+    entrepreneur_id = models.CharField(db_column='EntrepreneurID', max_length=50, blank=True, null=True) # Linked to Entrepreneur
+    year = models.CharField(db_column='Year', max_length=20, blank=True, null=True)
+    income = models.DecimalField(db_column='Income', max_digits=12, decimal_places=2, blank=True, null=True)
+    details = models.TextField(db_column='Details', blank=True, null=True)
+
+    class Meta:
+        db_table = 'EntrepreneurIncome'
+
 # ==========================================
 # 3. กลุ่มกิจกรรม (Activities)
 # ==========================================
@@ -122,20 +139,54 @@ class Entrepreneur(models.Model):
 class Training(models.Model):
     training_id = models.CharField(db_column='TrainingID', primary_key=True, max_length=50)
     training_name = models.CharField(db_column='TrainingName', max_length=255, blank=True, null=True)
-    training_date = models.DateField(db_column='TrainingDate', blank=True, null=True)
+    training_date = models.DateField(db_column='TrainingDate', blank=True, null=True) # Start Date
+    training_end_date = models.DateField(db_column='TrainingEndDate', blank=True, null=True) # New: End Date
+    project = models.ForeignKey('Project', on_delete=models.SET_NULL, db_column='ProjectID', blank=True, null=True, related_name='trainings') # New: FK
+    lecturer_name = models.CharField(db_column='LecturerName', max_length=255, blank=True, null=True) # New: Who trained
+    description = models.TextField(db_column='Description', blank=True, null=True)
 
     class Meta:
         db_table = 'Training'
+
+class StudentTraining(models.Model):
+    stid = models.AutoField(primary_key=True)
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, db_column='StudentID', related_name='trainings')
+    training = models.ForeignKey('Training', on_delete=models.CASCADE, db_column='TrainingID', related_name='participants')
+    status = models.CharField(db_column='Status', max_length=50, default='Registered') # Registered, Attended
+
+    class Meta:
+        db_table = 'Student_Training'
+        unique_together = ('student', 'training')
+
+class SpeakerTraining(models.Model):
+    spt_id = models.AutoField(primary_key=True)
+    speaker_id = models.CharField(db_column='SpeakerID', max_length=50, blank=True, null=True)
+    training_id = models.CharField(db_column='TrainingID', max_length=50, blank=True, null=True)
+
+    class Meta:
+        db_table = 'Speaker_Training'
 
 class ProjectAward(models.Model):
     paid = models.CharField(db_column='PAID', primary_key=True, max_length=50)
     team_name = models.CharField(db_column='TeamName', max_length=50, blank=True, null=True)
     project_name = models.CharField(db_column='ProjectName', max_length=50, blank=True, null=True)
+    award_name = models.CharField(db_column='AwardName', max_length=255, blank=True, null=True) # New
+    rank = models.CharField(db_column='Rank', max_length=50, blank=True, null=True) # New: Winner, Runner-up, etc.
     around = models.CharField(db_column='Around', max_length=50, blank=True, null=True)
     year = models.CharField(db_column='Year', max_length=20, blank=True, null=True)
 
     class Meta:
         db_table = 'Project_Award'
+
+class StudentAward(models.Model):
+    said = models.AutoField(primary_key=True)
+    student = models.CharField(db_column='StudentID', max_length=50, blank=True, null=True)
+    award_name = models.CharField(db_column='AwardName', max_length=255, blank=True, null=True)
+    around = models.CharField(db_column='Around', max_length=50, blank=True, null=True)
+    year = models.CharField(db_column='Year', max_length=20, blank=True, null=True)
+
+    class Meta:
+        db_table = 'Student_Award'
 
 # ==========================================
 # 4. ระบบบริการและปฏิบัติการ (Services - NEW)
@@ -328,3 +379,31 @@ class Stock(models.Model):
     total_stock = models.IntegerField(db_column='Total_Stock', blank=True, null=True)
     class Meta:
         db_table = 'Stock'
+
+class StockMovement(models.Model):
+    sm_id = models.AutoField(primary_key=True)
+    stock_item = models.ForeignKey(Stock, on_delete=models.CASCADE, db_column='StockID')
+    qty = models.IntegerField(db_column='Qty')
+    action_type = models.CharField(db_column='ActionType', max_length=20) # In, Out
+    date_time = models.DateTimeField(auto_now_add=True, db_column='Date_Time')
+    user = models.CharField(db_column='UserID', max_length=50, blank=True, null=True) # Who did it
+
+    class Meta:
+        db_table = 'Stock_Movement'
+
+# ==========================================
+# 7. ระบบความปลอดภัยและตรวจสอบ (Security & Audit)
+# ==========================================
+
+class AuditLog(models.Model):
+    log_id = models.AutoField(primary_key=True)
+    user = models.CharField(db_column='UserID', max_length=50, blank=True, null=True) # User Email or ID
+    action = models.CharField(db_column='Action', max_length=50) # Create, Update, Delete
+    model_name = models.CharField(db_column='ModelName', max_length=50) # Which table
+    object_id = models.CharField(db_column='ObjectID', max_length=50, blank=True, null=True) # Record ID
+    timestamp = models.DateTimeField(auto_now_add=True, db_column='Timestamp')
+    details = models.TextField(db_column='Details', blank=True, null=True) # Changed fields JSON
+
+    class Meta:
+        db_table = 'Audit_Log'
+        ordering = ['-timestamp']

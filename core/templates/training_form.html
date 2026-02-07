@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white p-4">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-journal-plus me-2"></i> {{ title }}</h4>
+                </div>
+                <div class="card-body p-5">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">หัวข้อการอบรม</label>
+                            {{ form.training_name }}
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">วันเริ่มอบรม</label>
+                                {{ form.training_date }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">วันสิ้นสุด (Optional)</label>
+                                {{ form.training_end_date }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">วิทยากร (Lecturer)</label>
+                            {{ form.lecturer_name }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">เชื่อมโยงโครงการ (Optional)</label>
+                            {{ form.project }}
+                            <div class="form-text">เลือกโครงการที่เกี่ยวข้องกับการอบรมนี้</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">รายละเอียด</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+                            <a href="{% url 'training_list' %}" class="btn btn-light rounded-pill px-4">ยกเลิก</a>
+                            <button type="submit"
+                                class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">บันทึกข้อมูล</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

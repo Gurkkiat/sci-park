@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"
+                    class="text-decoration-none text-muted">หน้าหลัก</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'training_list' %}"
+                    class="text-decoration-none text-muted">รายการฝึกอบรม</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ training.training_name|truncatechars:30 }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header Section -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+        <div class="card-body p-5 position-relative">
+            <div class="d-flex justify-content-between align-items-start position-relative z-2">
+                <div>
+                    <span
+                        class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill mb-3 px-3 py-2">
+                        <i class="bi bi-hash me-1"></i> {{ training.training_id }}
+                    </span>
+                    <h1 class="fw-bold text-dark mb-4">{{ training.training_name }}</h1>
+
+                    <div class="d-flex flex-wrap gap-4 text-secondary">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-square bg-light text-primary rounded-circle me-3">
+                                <i class="bi bi-calendar-check fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="d-block text-muted text-uppercase fw-bold"
+                                    style="font-size: 0.7rem;">Date</small>
+                                <span class="fw-semibold">{{ training.training_date|date:"d M Y" }}
+                                    {% if training.training_end_date %} - {{ training.training_end_date|date:"d M Y"
+                                    }}{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        {% if training.lecturer_name %}
+                        <div class="d-flex align-items-center">
+                            <div class="icon-square bg-light text-info rounded-circle me-3">
+                                <i class="bi bi-person-video3 fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="d-block text-muted text-uppercase fw-bold"
+                                    style="font-size: 0.7rem;">Lecturer</small>
+                                <span class="fw-semibold">{{ training.lecturer_name }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if training.project %}
+                        <div class="d-flex align-items-center">
+                            <div class="icon-square bg-light text-warning rounded-circle me-3">
+                                <i class="bi bi-briefcase fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="d-block text-muted text-uppercase fw-bold"
+                                    style="font-size: 0.7rem;">Project</small>
+                                <a href="{% url 'project_detail' training.project.project_id %}"
+                                    class="fw-semibold text-decoration-none text-dark stretched-link">
+                                    {{ training.project.project_name }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- Decorative BG -->
+            <div class="position-absolute top-0 end-0 p-5 opacity-10">
+                <i class="bi bi-journal-bookmark fs-1 text-primary display-1"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold text-dark"><i class="bi bi-file-text me-2 text-primary"></i>รายละเอียด
+                        (Description)</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="bg-light p-4 rounded-4 text-secondary lh-lg">
+                        {{ training.description|default:"- ไม่มีรายละเอียด -"|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Participants Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-people me-2"></i>ผู้เข้าร่วม ({{ participants.count }})
+                        </h6>
+                    </div>
+
+                    {% if participants %}
+                    <div class="list-group list-group-flush mb-3">
+                        {% for p in participants %}
+                        <div
+                            class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle p-2 me-3">
+                                    <i class="bi bi-person text-secondary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 small fw-bold">{{ p.student.full_name }}</h6>
+                                    <small class="text-muted" style="font-size: 0.75rem;">{{ p.student.major }}</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-success-subtle text-success rounded-pill"
+                                style="font-size: 0.7rem;">Registered</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 bg-light rounded-3 mb-3">
+                        <i class="bi bi-people text-muted fs-1 mb-2"></i>
+                        <p class="text-muted small mb-0">ยังไม่มีผู้ลงทะเบียน</p>
+                    </div>
+                    {% endif %}
+
+                    <button class="btn btn-outline-primary w-100 rounded-pill" data-bs-toggle="modal"
+                        data-bs-target="#addParticipantModal">
+                        <i class="bi bi-person-plus me-1"></i> เพิ่มผู้เข้าร่วม
+                    </button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            {% if user.is_staff %}
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">จัดการ (Management)</h6>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'training_edit' training.training_id %}"
+                            class="btn btn-light text-start text-dark rounded-3 px-3">
+                            <i class="bi bi-pencil me-2"></i> แก้ไขข้อมูล
+                        </a>
+                        <a href="{% url 'training_delete' training.training_id %}"
+                            class="btn btn-light text-start text-danger rounded-3 px-3">
+                            <i class="bi bi-trash me-2"></i> ลบการอบรม
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-square {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<!-- Add Participant Modal -->
+<div class="modal fade" id="addParticipantModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">เพิ่มผู้เข้าร่วมอบรม</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="add_participant" value="true">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">เลือกนักศึกษา</label>
+                        {{ form.student }}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

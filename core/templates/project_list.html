@@ -110,10 +110,13 @@
                 <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
                     <i class="bi bi-rocket-takeoff-fill me-1"></i> Dashboard
                 </a>
+                </a>
+                {% if user.is_staff or user.is_superuser %}
                 <a href="{% url 'project_create' %}"
                     class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-primary shadow-sm">
                     <i class="bi bi-plus-circle-fill me-1"></i> สร้างโครงการใหม่
                 </a>
+                {% endif %}
             </div>
             <h1 class="display-5 fw-bold mb-2">ระบบติดตามและค้นหาโครงการ</h1>
             <p class="lead mb-0 opacity-75">ค้นหาข้อมูลโครงการ วิจัย และนวัตกรรมในระบบ Sci-Park</p>

@@ -1,4 +1,6 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from .models import Booking
 
 class BookingForm(forms.ModelForm):
@@ -18,16 +20,27 @@ class BookingForm(forms.ModelForm):
             'booked_by_user': forms.Select(attrs={'class': 'form-select'}),
         }
 
-from .models import Project, Student
+from .models import Project, Student, Team
 
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ['project_name', 'project_fullname', 'project_detail']
+        fields = ['project_name', 'project_fullname', 'project_detail', 'objective', 'budget_year']
         widgets = {
             'project_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อโครงการสั้นๆ (เช่น Smart Farm)'}),
             'project_fullname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อโครงการเต็มรูปแบบ'}),
             'project_detail': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'รายละเอียดโครงการ...'}),
+            'objective': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'วัตถุประสงค์ของโครงการ...'}),
+            'budget_year': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ปีงบประมาณ (เช่น 2567)'}),
+        }
+
+class TeamCreateForm(forms.ModelForm):
+    class Meta:
+        model = Team
+        fields = ['concept', 'development_needs']
+        widgets = {
+            'concept': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'แนวคิดหลักของโครงงาน (Concept)'}),
+            'development_needs': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'ความต้องการสนับสนุน (Development Needs)'}),
         }
 
 class MemberAddForm(forms.Form):
@@ -79,4 +92,53 @@ class ProjectTimelineForm(forms.ModelForm):
             ]),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'รายละเอียดความคืบหน้า...'}),
             'evidence_file': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+class UserRegisterForm(UserCreationForm):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'อีเมล'}))
+
+class UserRegisterForm(UserCreationForm):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'อีเมล'}))
+
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อผู้ใช้'}),
+        }
+
+from .models import Training, Student
+
+class TrainingForm(forms.ModelForm):
+    class Meta:
+        model = Training
+        fields = ['training_name', 'training_date', 'training_end_date', 'lecturer_name', 'project', 'description']
+        widgets = {
+            'training_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'หัวข้อการอบรม'}),
+            'training_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'วันเริ่ม'}),
+            'training_end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'วันสิ้นสุด'}),
+            'lecturer_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อวิทยากร (Lecturer)'}),
+            'project': forms.Select(attrs={'class': 'form-select'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'รายละเอียดการอบรม...'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'รายละเอียดการอบรม...'}),
+        }
+
+class TrainingParticipantForm(forms.Form):
+    student = forms.ModelChoiceField(
+        queryset=Student.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="เลือกนักศึกษา"
+    )
+
+from .models import ProjectAward
+
+class ProjectAwardForm(forms.ModelForm):
+    class Meta:
+        model = ProjectAward
+        fields = ['award_name', 'around', 'year', 'rank']
+        widgets = {
+            'award_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อรางวัล (เช่น Best Innovation)'}),
+            'around': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'รอบการแข่งขัน (เช่น รอบสุดท้าย)'}),
+            'year': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ปีที่ได้รับ (เช่น 2024)'}),
+            'rank': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ลำดับรางวัล (เช่น ชนะเลิศ, รองชนะเลิศ)'}),
         }

@@ -2,13 +2,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages  # Import messages
 from .models import Student, Project, Facility, Booking, Team, TeamStudent, ProjectAward
 from django.db.models import Q
-from .forms import BookingForm
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from .forms import BookingForm, UserRegisterForm
 
+@login_required
 def dashboard(request):
     # 1. ดึงข้อมูลจำนวนรายการต่างๆ มานับ (Count)
     total_students = Student.objects.count()
     total_projects = Project.objects.count()
     total_facilities = Facility.objects.count()
+    total_trainings = Training.objects.count()
     
     # ดึงการจองล่าสุด 5 รายการมาแสดง
     recent_bookings = Booking.objects.order_by('-booking_date')[:5]
@@ -68,6 +72,7 @@ def dashboard(request):
         'total_students': total_students,
         'total_projects': total_projects,
         'total_facilities': total_facilities,
+        'total_trainings': total_trainings,
         'recent_bookings': recent_bookings,
         'chart_labels': chart_labels,
         'chart_data': chart_data,
@@ -115,19 +120,25 @@ def project_detail(request, project_id):
     # 4. Get Project Timeline
     timeline = project.timelines.all()
 
+    # 5. Get Awards
+    awards = ProjectAward.objects.filter(project_name=project.project_name)
+
     context = {
         'project': project,
         'teams_data': teams_data,
         'member_form': MemberAddForm(), 
         'student_form': StudentForm(), # Add new student form
         'timeline_form': ProjectTimelineForm(), # Add timeline form
-        'timeline': timeline
+        'award_form': ProjectAwardForm(), # Add award form
+        'timeline': timeline,
+        'awards': awards
     }
     return render(request, 'project_detail.html', context)
 
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 
+@login_required
 def booking_create(request):
     # Fetch all facilities for JS filtering
     all_facilities = list(Facility.objects.all().values('facility_id', 'facility_name', 'zone', 'floor', 'facility_type'))
@@ -260,48 +271,68 @@ def student_detail(request, student_id):
         'awards': awards,
         'team_count': len(team_names)
     }
-    context = {
-        'student': student,
-        'projects': projects,
-        'awards': awards,
-        'team_count': len(team_names)
-    }
     return render(request, 'student_detail.html', context)
-
-from .forms import ProjectForm, MemberAddForm
+    
+from .models import AuditLog # Import AuditLog
+from .forms import ProjectForm, MemberAddForm, TeamCreateForm
 from django.utils import timezone
 
+@login_required
+@login_required
 def project_create(request):
+    if not request.user.is_staff:
+        messages.error(request, 'คุณไม่มีสิทธิ์สร้างโครงการ (Admin Only)')
+        return redirect('dashboard')
+        
     if request.method == 'POST':
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            # Generate dummy ID (In real app, use AutoField or UUID)
+        project_form = ProjectForm(request.POST)
+        team_form = TeamCreateForm(request.POST) # Handle Team Form
+        
+        if project_form.is_valid() and team_form.is_valid():
+            # 1. Save Project
+            project = project_form.save(commit=False)
             count = Project.objects.count() + 1
             project.project_id = f"PROJ-{timezone.now().year}-{count:04d}"
-            project.create_by = "User" # Default user
+            project.create_by = request.user.username if request.user.username else "User"
             project.date_time = timezone.now()
+            
+            # Use request.user if available, otherwise default
             project.save()
             
-            # Auto-create Team
+            # 2. Save Team with new fields
+            team = team_form.save(commit=False)
             team_count = Team.objects.count() + 1
-            Team.objects.create(
-                team_id=f"TEAM-{team_count:04d}",
-                team_name=f"{project.project_name} Team",
-                project_name=project.project_name,
-                date_time=timezone.now()
+            team.team_id = f"TEAM-{team_count:04d}"
+            team.team_name = f"{project.project_name} Team"
+            team.project_name = project.project_name
+            team.date_time = timezone.now()
+            team.date_time = timezone.now()
+            team.save()
+
+            # Record Audit Log
+            AuditLog.objects.create(
+                user=request.user.username,
+                action='Create',
+                model_name='Project',
+                object_id=project.project_id,
+                details=f"Created project {project.project_name} and team {team.team_name}"
             )
-            
-            messages.success(request, f'สร้างโครงการ {project.project_name} เรียบร้อยแล้ว!')
+
+            messages.success(request, f'สร้างโครงการ {project.project_name} และทีมเรียบร้อยแล้ว!')
             return redirect('project_detail', project_id=project.project_id)
     else:
-        form = ProjectForm()
+        project_form = ProjectForm()
+        team_form = TeamCreateForm()
     
-    return render(request, 'project_create.html', {'form': form})
+    return render(request, 'project_create.html', {'form': project_form, 'team_form': team_form})
 
-from .forms import ProjectForm, MemberAddForm, StudentForm, ProjectTimelineForm # Import Forms
-
+from .forms import ProjectForm, MemberAddForm, StudentForm, ProjectTimelineForm, ProjectAwardForm # Import Forms
+from .models import ProjectTimeline, ProjectAward # Import Models
+@login_required
 def project_add_member(request, project_id):
+    if not request.user.is_staff:
+        messages.error(request, 'คุณไม่มีสิทธิ์แก้ไขสมาชิก (Admin Only)')
+        return redirect('project_detail', project_id=project_id)
     project = get_object_or_404(Project, project_id=project_id)
     # Find the team for this project
     team = Team.objects.filter(project_name=project.project_name).first()
@@ -356,7 +387,12 @@ def project_add_member(request, project_id):
 
 from .models import ProjectTimeline
 
+@login_required
+@login_required
 def project_add_timeline(request, project_id):
+    if not request.user.is_staff:
+        messages.error(request, 'คุณไม่มีสิทธิ์เพิ่มไทม์ไลน์ (Admin Only)')
+        return redirect('project_detail', project_id=project_id)
     project = get_object_or_404(Project, project_id=project_id)
     if request.method == 'POST':
         form = ProjectTimelineForm(request.POST, request.FILES)
@@ -369,8 +405,19 @@ def project_add_timeline(request, project_id):
              messages.error(request, 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล')
     return redirect('project_detail', project_id=project_id)
 
+@login_required
+@login_required
 def project_edit_timeline(request, timeline_id):
+    if not request.user.is_staff:
+        messages.error(request, 'คุณไม่มีสิทธิ์แก้ไขไทม์ไลน์ (Admin Only)')
+        # Need to fetch timeline first to know where to redirect if error, but wait, function has timeline_id
+        # Easier to fetch object first? Or just redirect to dashboard?
+        # Let's fetch object first inside check? No, cleaner to redirect to dashboard if generic fail or fetch simple.
+        # Actually I can fetch timeline first.
     timeline = get_object_or_404(ProjectTimeline, pk=timeline_id)
+    if not request.user.is_staff:
+         messages.error(request, 'คุณไม่มีสิทธิ์แก้ไขไทม์ไลน์ (Admin Only)')
+         return redirect('project_detail', project_id=timeline.project.project_id)
     if request.method == 'POST':
         form = ProjectTimelineForm(request.POST, request.FILES, instance=timeline)
         if form.is_valid():
@@ -380,9 +427,169 @@ def project_edit_timeline(request, timeline_id):
             messages.error(request, 'เกิดข้อผิดพลาดในการแก้ไขข้อมูล')
     return redirect('project_detail', project_id=timeline.project.project_id)
 
+@login_required
+@login_required
 def project_delete_timeline(request, timeline_id):
     timeline = get_object_or_404(ProjectTimeline, pk=timeline_id)
+    if not request.user.is_staff:
+         messages.error(request, 'คุณไม่มีสิทธิ์ลบไทม์ไลน์ (Admin Only)')
+         return redirect('project_detail', project_id=timeline.project.project_id)
     project_id = timeline.project.project_id
     timeline.delete()
     messages.success(request, 'ลบข้อมูลเรียบร้อยแล้ว')
+    return redirect('project_detail', project_id=project_id)
+
+def register(request):
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, f'Welcome to Sci-Park, {user.username}!')
+            return redirect('dashboard')
+    else:
+        form = UserRegisterForm()
+    return render(request, 'registration/register.html', {'form': form})
+# ==========================
+# Training Views
+# ==========================
+
+from .models import Training, StudentTraining
+from .forms import TrainingForm, TrainingParticipantForm
+
+@login_required
+def training_list(request):
+    trainings = Training.objects.all().order_by('-training_date')
+    return render(request, 'training_list.html', {'trainings': trainings})
+
+@login_required
+def training_create(request):
+    if not request.user.is_staff:
+        messages.error(request, 'คุณไม่มีสิทธิ์สร้างการอบรม (Admin Only)')
+        return redirect('training_list')
+
+    if request.method == 'POST':
+        form = TrainingForm(request.POST)
+        if form.is_valid():
+            training = form.save(commit=False)
+            # Generate ID
+            count = Training.objects.count() + 1
+            training.training_id = f"TR-{timezone.now().year}-{count:04d}"
+            training.save()
+
+            # Audit Log
+            AuditLog.objects.create(
+                user=request.user.username,
+                action='Create',
+                model_name='Training',
+                object_id=training.training_id,
+                details=f"Created training {training.training_name}"
+            )
+
+            messages.success(request, 'สร้างการอบรมเรียบร้อยแล้ว')
+            return redirect('training_list')
+    else:
+        form = TrainingForm()
+    
+    return render(request, 'training_form.html', {'form': form, 'title': 'สร้างการอบรมใหม่'})
+
+@login_required
+def training_detail(request, training_id):
+    training = get_object_or_404(Training, training_id=training_id)
+    participants = training.participants.all().select_related('student')
+    
+    # Participant Form
+    if request.method == 'POST' and 'add_participant' in request.POST:
+        form = TrainingParticipantForm(request.POST)
+        if form.is_valid():
+            student = form.cleaned_data['student']
+            # Check if already registered
+            if not StudentTraining.objects.filter(training=training, student=student).exists():
+                StudentTraining.objects.create(training=training, student=student, status='Registered')
+                messages.success(request, f'เพิ่ม {student.full_name} เข้าการอบรมเรียบร้อยแล้ว')
+            else:
+                messages.warning(request, f'{student.full_name} ลงทะเบียนไปแล้ว')
+            return redirect('training_detail', training_id=training_id)
+    else:
+        form = TrainingParticipantForm()
+
+    return render(request, 'training_detail.html', {
+        'training': training,
+        'participants': participants,
+        'form': form
+    })
+
+@login_required
+def training_edit(request, training_id):
+    training = get_object_or_404(Training, training_id=training_id)
+    if not request.user.is_staff:
+        messages.error(request, 'Permission Denied')
+        return redirect('training_detail', training_id=training_id)
+
+    if request.method == 'POST':
+        form = TrainingForm(request.POST, instance=training)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'แก้ไขข้อมูลการอบรมเรียบร้อยแล้ว')
+            return redirect('training_detail', training_id=training_id)
+    else:
+        form = TrainingForm(instance=training)
+    
+    return render(request, 'training_form.html', {'form': form, 'title': f'แก้ไขการอบรม: {training.training_name}'})
+
+@login_required
+def training_delete(request, training_id):
+    training = get_object_or_404(Training, training_id=training_id)
+    if not request.user.is_staff:
+        messages.error(request, 'Permission Denied')
+        return redirect('training_detail', training_id=training_id)
+
+    if request.method == 'POST':
+        training.delete()
+        messages.success(request, 'ลบการอบรมเรียบร้อยแล้ว')
+        return redirect('training_list')
+    
+    return render(request, 'training_confirm_delete.html', {'training': training})
+
+# ==========================
+# Award Views
+# ==========================
+from .forms import ProjectAwardForm
+from .models import ProjectAward
+
+@login_required
+def project_add_award(request, project_id):
+    project = get_object_or_404(Project, project_id=project_id)
+    if not request.user.is_staff:
+        messages.error(request, 'คุณไม่มีสิทธิ์เพิ่มรางวัล (Admin Only)')
+        return redirect('project_detail', project_id=project_id)
+
+    if request.method == 'POST':
+        form = ProjectAwardForm(request.POST)
+        if form.is_valid():
+            award = form.save(commit=False)
+            # Generate ID
+            count = ProjectAward.objects.count() + 1
+            award.paid = f"AW-{timezone.now().year}-{count:04d}"
+            award.project_name = project.project_name
+            # Find associated team name
+            team = Team.objects.filter(project_name=project.project_name).first()
+            if team:
+                award.team_name = team.team_name
+            
+            award.save()
+
+            # Audit Log
+            AuditLog.objects.create(
+                user=request.user.username,
+                action='Create',
+                model_name='ProjectAward',
+                object_id=award.paid,
+                details=f"Added award {award.award_name} to project {project.project_name}"
+            )
+
+            messages.success(request, 'เพิ่มรางวัลเรียบร้อยแล้ว')
+        else:
+            messages.error(request, 'เกิดข้อผิดพลาดในการเพิ่มรางวัล')
+    
     return redirect('project_detail', project_id=project_id)
